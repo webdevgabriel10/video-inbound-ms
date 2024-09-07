@@ -1,0 +1,31 @@
+services:
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "admin"
+    volumes:
+      - ./rabbitmq/rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"] 
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  video-inbound-service:
+    build:
+      context: ./video-inbound-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./video-inbound-service:/usr/src/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq_data:
